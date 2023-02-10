@@ -1,9 +1,7 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.scss';
 import SpeedMatch from './Games/GameSpeedMatch/SpeedMatch';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 
 function App() {
   return (
