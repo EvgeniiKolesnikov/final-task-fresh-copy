@@ -99,10 +99,14 @@ export default function SpeedMatch() {
       succesSound.pause();
       succesSound.currentTime = 0;
       void succesSound.play();
+      const soundPromise = succesSound.play();
+      void soundPromise.catch();
     } else {
       failureSound.pause();
       failureSound.currentTime = 0;
-      void failureSound.play();
+      // void failureSound.play();
+      const soundPromise = failureSound.play();
+      void soundPromise.catch();
     }
   };
 
@@ -170,6 +174,8 @@ export default function SpeedMatch() {
     const timer = setInterval(() => {
       setStartGameTimer(prev => {
         if (prev !== 1) {
+          timerSound.pause();
+          timerSound.currentTime = 0;
           void timerSound.play();
         }
         return prev - 1;
