@@ -16,8 +16,6 @@ import rhombus from '../../assets/images/shapes/rhombus.png';
 import quatrefoil from '../../assets/images/shapes/quatrefoil.png';
 import StartGameTimer from '../../components/StartGameTimer/StartGameTimer';
 
-const succesSound = new Audio(succesSoundPath);
-const failureSound = new Audio(failureSoundPath);
 const timerSound = new Audio(timerSoundPath);
 
 const gameDescription =
@@ -95,19 +93,9 @@ export default function SpeedMatch() {
   const handleAnswer = (isRightAnswer: boolean) => {
     changeScore(isRightAnswer);
     setIsSuccess(isRightAnswer);
-    if (isRightAnswer) {
-      succesSound.pause();
-      succesSound.currentTime = 0;
-      void succesSound.play();
-      const soundPromise = succesSound.play();
-      void soundPromise.catch();
-    } else {
-      failureSound.pause();
-      failureSound.currentTime = 0;
-      // void failureSound.play();
-      const soundPromise = failureSound.play();
-      void soundPromise.catch();
-    }
+    isRightAnswer
+      ? void new Audio(succesSoundPath).play()
+      : void new Audio(failureSoundPath).play();
   };
 
   const chekIsRightAnswer = (key: string, current: string, prev: string) => {
