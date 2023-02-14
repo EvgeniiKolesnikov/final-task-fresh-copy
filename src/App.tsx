@@ -2,6 +2,7 @@ import React from 'react';
 import './App.scss';
 import SpeedMatch from './Games/GameSpeedMatch/SpeedMatch';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import MemoryMatrix from './Games/MemoryMatrix/MemoryMatrix';
 
 function App() {
   return (
@@ -16,9 +17,15 @@ function App() {
           Link - /speedmatch
         </Link>
       </div>
+      <div>
+        <Link to="/memorymatrix" style={{ color: 'white' }}>
+          Link - /memorymatrix
+        </Link>
+      </div>
       <Routes>
         <Route path="/" />
         <Route path="/speedmatch" element={<SpeedMatch />} />
+        <Route path="/memorymatrix" element={<MemoryMatrix />} />
       </Routes>
     </BrowserRouter>
   );

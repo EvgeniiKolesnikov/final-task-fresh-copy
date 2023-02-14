@@ -1,4 +1,4 @@
-.speed-match {
+.memory-matrix {
   width: 640px;
   height: 480px;
   display: flex;
@@ -6,16 +6,23 @@
   position: relative;
   justify-content: center;
   align-items: center;
+  align-content: center;
   margin: 20px auto;
-  background: linear-gradient(153deg, rgba(2,0,36,1) 0%, rgba(164,68,157,1) 35%, rgba(0,212,255,1) 100%);
-  background: url('../../assets/images/gameBackgrounds/bgGradient.jpg');
+  background: url('../../assets/images/gameBackgrounds/bgBrown.jpg');
+  background: url('../../assets/images/gameBackgrounds/bgWood.jpg');
   border-radius: 10px;
   text-align: center;
+  user-select: none;
   &__title {
     margin-top: 50px;
     color: #fff;
     font-size: 1.5rem;
     font-weight: normal;
-    font-family: "Courier New", Courier, monospace;
   }
+}
+
+.memory-matrix__message {
+  position: absolute;
+  bottom: 30px;
+  color: #e1e1e1;
 }

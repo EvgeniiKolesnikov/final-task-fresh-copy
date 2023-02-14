@@ -19,7 +19,7 @@ import StartGameTimer from '../../components/StartGameTimer/StartGameTimer';
 const timerSound = new Audio(timerSoundPath);
 
 const gameDescription =
-  'In Speed Match you only need to determine if the symbols are the same.';
+  'In Speed Match you only need to determine if the symbols are the same';
 
 interface IShapes {
   shapeName: string;
@@ -217,7 +217,8 @@ export default function SpeedMatch() {
     <div className="speed-match">
       {!isStarted && !isGameEnd && (
         <StartGame
-          title="SpeedMatch"
+          title="Speed Match"
+          colorStyle={'speed-match'}
           description={gameDescription}
           onPlayHandler={onPlayHandler}
         />
@@ -234,6 +235,7 @@ export default function SpeedMatch() {
             streak={streak}
             multiplier={multiplier}
             timer={gameTimer}
+            colorStyle={'speed-match'}
           />
           <h2 className="speed-match__title">
             Does the CURRENT card match the card that came IMMEDIATELY BEFORE
@@ -249,6 +251,7 @@ export default function SpeedMatch() {
           score={score}
           correct={rightAnswersCount}
           count={answersCount}
+          colorStyle={'speed-match'}
           onRetryHandler={onRetryHandler}
         />
       )}
