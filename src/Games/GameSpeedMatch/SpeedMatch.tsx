@@ -16,8 +16,6 @@ import rhombus from '../../assets/images/shapes/rhombus.png';
 import quatrefoil from '../../assets/images/shapes/quatrefoil.png';
 import StartGameTimer from '../../components/StartGameTimer/StartGameTimer';
 
-const timerSound = new Audio(timerSoundPath);
-
 const gameDescription =
   'In Speed Match you only need to determine if the symbols are the same';
 
@@ -158,13 +156,11 @@ export default function SpeedMatch() {
   };
 
   const startGameTimerHandle = () => {
-    void timerSound.play();
+    void new Audio(timerSoundPath).play();
     const timer = setInterval(() => {
       setStartGameTimer(prev => {
         if (prev !== 1) {
-          timerSound.pause();
-          timerSound.currentTime = 0;
-          void timerSound.play();
+          void new Audio(timerSoundPath).play();
         }
         return prev - 1;
       });
