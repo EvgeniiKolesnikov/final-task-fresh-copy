@@ -1,36 +1,58 @@
-import cn from 'classnames';
-import React from 'react';
+import { useState } from 'react';
 import './Tile.scss';
 
 interface TileProps {
-  className: string;
-  children?: JSX.Element;
+  className?: string;
+  index: number;
+  isGame: boolean;
+  setBoard: React.Dispatch<React.SetStateAction<string[]>>;
+
+  tapsCount: number;
+  setTapsCount: React.Dispatch<React.SetStateAction<number>>;
+  tapsSuccess: number;
+  setTapsSuccess: React.Dispatch<React.SetStateAction<number>>;
+  tapsDone: number;
+  setTapsDone: React.Dispatch<React.SetStateAction<number>>;
+  setLastTileIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
-// export default function Tile({
-//   style,
-// }: React.HTMLAttributes<HTMLDivElement>): JSX.Element {
-//   return <div className="tile" style={style}></div>;
-// }
+export default function Tile({
+  className,
+  index,
+  isGame,
+  setBoard,
+  tapsCount,
+  setTapsCount,
+  tapsSuccess,
+  setTapsSuccess,
+  tapsDone,
+  setTapsDone,
+  setLastTileIndex,
+}: TileProps): JSX.Element {
+  const flipCard = (prevBoard: string[], index: number) => {
+    return prevBoard.map((el, i) => {
+      if (i === index) {
+        setLastTileIndex(() => i);
+        setTapsDone(prev => prev + 1);
+        if (el.includes('tile_default')) {
+          return 'tile tile_wrong';
+        } else if (el.includes('tile_guess')) {
+          setTapsSuccess(prev => prev + 1);
+          if (tapsSuccess === tapsCount) {
+            return 'tile tile_allright';
+          } else {
+            return 'tile_guess flipped_guess';
+          }
+        }
+      }
+      return el;
+    });
+  };
 
-const flipCard = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-  const card: HTMLDivElement | null = e.target as HTMLDivElement;
-  console.log(e.target);
-  // console.log(card.classList.contains('tile_default'));
-
-  if (card.classList.contains('tile_default')) {
-    card.classList.add('tile_wrong', 'flipped');
-    card.className = 'tile tile_wrong';
-  } else if (card.classList.contains('tile_guess')) {
-    card.classList.add('flipped_guess');
-  }
-};
-
-export default function Tile({ className }: TileProps): JSX.Element {
   return (
     <div
       className={`tile ${className ? className : ''}`}
-      onClick={e => flipCard(e)}
+      onClick={() => isGame && setBoard(prev => flipCard(prev, index))}
     ></div>
   );
 }
