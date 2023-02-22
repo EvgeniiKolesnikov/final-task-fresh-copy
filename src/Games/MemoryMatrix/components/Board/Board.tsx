@@ -3,15 +3,29 @@ import React, { useEffect, useState } from 'react';
 import Tile from '../Tile/Tile';
 import './Board.scss';
 
+import flipGoodPath from '../../../../assets/sounds/matrix/flipGood.mp3';
+import flipBadPath from '../../../../assets/sounds/matrix/flipBad.mp3';
+import flipWinPath from '../../../../assets/sounds/matrix/flipWin.mp3';
+import flipWinAll from '../../../../assets/sounds/matrix/flipWinAll.mp3';
+
 interface BoardProps {
   tiles: number;
   setTiles: React.Dispatch<React.SetStateAction<number>>;
   trial: number;
   setTrial: React.Dispatch<React.SetStateAction<number>>;
+  addScore: () => void;
+  addBonusScore: () => void;
+  gameMessage: (tapsDone: number, tapsSuccess: number) => void;
+  tutorMessage: (levelState: string) => void;
+  endTutorial: () => void;
+  isTutorial: boolean;
+  setIsGameEnd: React.Dispatch<React.SetStateAction<boolean>>;
+  refreshBestBoard: () => void;
   children?: JSX.Element;
 }
 
 const BOARD_ZOOM = 42;
+const TRIAL_MAX = 12;
 
 const boardSizes: Map<number, { w: number; h: number }> = new Map([
   [1, { w: 2, h: 2 }],
@@ -81,6 +95,14 @@ export default function Board({
   setTiles,
   trial = 1,
   setTrial,
+  addScore,
+  addBonusScore,
+  gameMessage,
+  tutorMessage,
+  endTutorial,
+  isTutorial,
+  setIsGameEnd,
+  refreshBestBoard,
 }: BoardProps) {
   const [board, setBoard] = useState<string[]>([]);
 
@@ -93,11 +115,22 @@ export default function Board({
   const [tapsDone, setTapsDone] = useState<number>(0);
   const [lastTileIndex, setLastTileIndex] = useState<number>(0);
 
+  const flipGood = new Audio(flipGoodPath);
+  const flipBad = new Audio(flipBadPath);
+  const flipWin = new Audio(flipWinPath);
+
   const boardSize = boardSizes.get(tiles);
   const boardWidth = boardSize?.w !== undefined ? boardSize.w : 3;
   const boardHeight = boardSize?.h !== undefined ? boardSize.h : 3;
 
+  function checkEndOfGame() {
+    return trial >= TRIAL_MAX;
+  }
+
+  // Waiting BG loaded
   useEffect(() => {
+    // void new Audio(moveBg).play();
+
     const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
       setIsLevelLoaded(() => true);
       // console.log('Board BG loaded');
@@ -106,20 +139,33 @@ export default function Board({
     return () => {
       clearTimeout(timer);
     };
-  }, [trial]);
+  }, [trial, isTutorial]);
 
   useEffect(() => {
     if (isLevelLoaded) {
-      console.log('Load Default Board');
+      // Load Board
       setBoard(generateBoard(tiles));
+      tutorMessage('loading');
 
+      const timerCoupIn: ReturnType<typeof setTimeout> = setTimeout(() => {
+        void flipGood.play();
+        clearTimeout(timerCoupIn);
+      }, 1200);
+
+      const timerCoupOut: ReturnType<typeof setTimeout> = setTimeout(() => {
+        void flipGood.play();
+        clearTimeout(timerCoupOut);
+      }, 4500);
+
+      // Waiting coup tiles and Start Game
       const timerStartGame: ReturnType<typeof setTimeout> = setTimeout(() => {
+        // START GAME
         setIsGame(() => true);
         setTapsCount(tiles);
         setTapsSuccess(0);
         setTapsDone(0);
         setLastTileIndex(0);
-        console.log('Start Game');
+        tutorMessage('game');
         clearTimeout(timerStartGame);
       }, 4500);
       return () => {
@@ -132,7 +178,7 @@ export default function Board({
     if (isLevelLoaded && isLevelEnd) {
       setIsLevelLoaded(false);
       // setIsLevelEnd(false);
-      console.log('Unload Level');
+      // console.log('Unload Level');
       setBoard(prev =>
         prev.map(el => {
           // console.log('el =====', el);
@@ -148,6 +194,21 @@ export default function Board({
         setIsLevelEnd(false);
         setBoard(() => []);
         setTiles(prev => {
+          // Tutorial rules =========================================
+          if (isTutorial) {
+            if (tapsSuccess === tapsCount) {
+              if (tiles === 3) {
+                endTutorial();
+                setTrial(() => 2);
+                return 3;
+              }
+            }
+            if (tapsSuccess < tapsCount) {
+              return prev;
+            }
+          }
+          //  Tutorial rules end ======================================
+
           if (tapsSuccess === tapsCount) {
             return prev >= 30 ? prev : prev + 1;
           }
@@ -157,19 +218,39 @@ export default function Board({
           }
           return prev;
         });
-        console.log('Next Level');
-        setTrial(prev => prev + 1);
+        // console.log('Next Level');
+        refreshBestBoard();
+        // check End Of GAME
+        if (checkEndOfGame()) {
+          setIsGameEnd(true);
+        } else {
+          isTutorial ? setTrial(prev => prev - 1) : setTrial(prev => prev + 1);
+        }
+
+        // isTutorial ? setTrial(prev => prev - 1) : setTrial(prev => prev + 1);
+        // setTrial(prev => prev + 1);
         clearTimeout(timerNextLevel);
       }, 3000);
     }
   }, [isLevelEnd]);
 
   useEffect(() => {
-    console.log(tapsCount, tapsSuccess, tapsDone);
+    // console.log(tapsCount, tapsSuccess, tapsDone);
+    gameMessage(tapsDone, tapsSuccess);
     if (tapsCount === tapsSuccess) {
+      // All taps Success
+      addBonusScore();
       setBoard(prev =>
         prev.map((el, i) => {
           if (i === lastTileIndex && el.includes('tile_guess')) {
+            void flipWin.play();
+            const timerFlipAll: ReturnType<typeof setTimeout> = setTimeout(
+              () => {
+                void new Audio(flipWinAll).play();
+                clearTimeout(timerFlipAll);
+              },
+              1300
+            );
             return 'tile tile_allright';
           }
           return el;
@@ -177,11 +258,37 @@ export default function Board({
       );
     }
     if (tapsCount === tapsDone) {
+      // All taps Done
       setIsGame(() => false);
       setIsLevelEnd(true);
-      console.log('all tapes done!!!!', lastTileIndex);
     }
   }, [tapsDone, tapsSuccess]);
+
+  const onTileClick = (index: number) => {
+    isGame &&
+      setBoard(prevBoard =>
+        prevBoard.map((el, i) => {
+          if (i === index) {
+            setLastTileIndex(() => i);
+            setTapsDone(prev => prev + 1);
+            if (el.includes('tile_default')) {
+              void flipBad.play();
+              return 'tile tile_wrong';
+            } else if (el.includes('tile_guess')) {
+              addScore();
+              setTapsSuccess(prev => prev + 1);
+              if (tapsSuccess === tapsCount) {
+                return 'tile tile_allright';
+              } else {
+                void flipGood.play();
+                return 'tile_guess flipped_guess';
+              }
+            }
+          }
+          return el;
+        })
+      );
+  };
 
   return (
     <div
@@ -200,19 +307,7 @@ export default function Board({
             ['tile-outer_hide-win']: isLevelEnd && tapsSuccess === tapsCount,
           })}
         >
-          <Tile
-            className={tileClassName}
-            index={i}
-            isGame={isGame}
-            setBoard={setBoard}
-            tapsCount={tapsCount}
-            setTapsCount={setTapsCount}
-            tapsSuccess={tapsSuccess}
-            setTapsSuccess={setTapsSuccess}
-            tapsDone={tapsDone}
-            setTapsDone={setTapsDone}
-            setLastTileIndex={setLastTileIndex}
-          />
+          <Tile className={tileClassName} index={i} onClick={onTileClick} />
         </div>
       ))}
     </div>
